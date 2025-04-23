@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { bookmarkedPhotos, BookmarkedPhoto } from "../data/bookmarks";
 import { useNavigate } from "react-router-dom";
+import PhotoModal from "./PhotoModal";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -77,8 +78,10 @@ const PhotoCard = styled(motion.div)`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   position: relative;
+  transition: transform 0.3s ease;
 
   &:hover {
+    transform: translateY(-5px);
     .overlay {
       opacity: 1;
     }
@@ -87,34 +90,61 @@ const PhotoCard = styled(motion.div)`
 
 const PhotoImage = styled.div<{ imageUrl: string }>`
   width: 100%;
-  padding-top: 75%;
+  padding-top: 100%;
   background-image: url(${(props) => props.imageUrl});
   background-size: cover;
   background-position: center;
+  position: relative;
 `;
 
 const PhotoInfo = styled.div`
-  padding: 1.5rem;
+  padding: 1.2rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
 `;
 
 const PhotoTitle = styled.h2`
   color: white;
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
+  display: none;
 `;
 
-const PhotoDescription = styled.p`
-  color: #aaa;
+const PhotoSpotName = styled.h3`
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const PhotoNotes = styled.p`
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const PhotoMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.8rem;
+`;
+
+const BookmarkCount = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: white;
 `;
 
 const Overlay = styled.div`
@@ -123,7 +153,7 @@ const Overlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -133,16 +163,17 @@ const Overlay = styled.div`
 `;
 
 const ActionButton = styled(motion.button)`
-  background: #6c5ce7;
-  color: white;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e1e1e;
   border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: background 0.3s ease;
 
   &:hover {
-    background: #5b4bc4;
+    background: white;
   }
 `;
 
@@ -172,6 +203,9 @@ const BookmarksPage: React.FC = () => {
   const navigate = useNavigate();
   const [photos, setPhotos] = useState<BookmarkedPhoto[]>(bookmarkedPhotos);
   const [filter, setFilter] = useState<"date" | "likes">("date");
+  const [selectedPhoto, setSelectedPhoto] = useState<BookmarkedPhoto | null>(
+    null
+  );
 
   const handleUnbookmark = (id: number) => {
     setPhotos(photos.filter((photo) => photo.id !== id));
@@ -188,11 +222,9 @@ const BookmarksPage: React.FC = () => {
 
   const sortedPhotos = [...photos].sort((a, b) => {
     if (filter === "date") {
-      return (
-        new Date(b.bookmarkedAt).getTime() - new Date(a.bookmarkedAt).getTime()
-      );
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
-    return b.likes - a.likes;
+    return b.bookmarks - a.bookmarks;
   });
 
   return (
@@ -230,21 +262,28 @@ const BookmarksPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
+              onClick={() => setSelectedPhoto(photo)}
             >
               <PhotoImage imageUrl={photo.imageUrl} />
               <PhotoInfo>
-                <PhotoTitle>{photo.title}</PhotoTitle>
-                <PhotoDescription>{photo.description}</PhotoDescription>
+                <PhotoSpotName>{photo.spotName}</PhotoSpotName>
+                <PhotoNotes>{photo.notes}</PhotoNotes>
                 <PhotoMeta>
-                  <span>{photo.author}</span>
-                  <span>좋아요 {photo.likes}개</span>
+                  <span>{formatDate(photo.createdAt)}</span>
+                  <BookmarkCount>
+                    <span>🔖</span>
+                    <span>{photo.bookmarks}</span>
+                  </BookmarkCount>
                 </PhotoMeta>
               </PhotoInfo>
               <Overlay className="overlay">
                 <ActionButton
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => handleUnbookmark(photo.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnbookmark(photo.id);
+                  }}
                 >
                   북마크 해제
                 </ActionButton>
@@ -261,6 +300,17 @@ const BookmarksPage: React.FC = () => {
       >
         커뮤니티로 이동
       </NavigationButton>
+
+      <PhotoModal
+        isOpen={!!selectedPhoto}
+        onClose={() => setSelectedPhoto(null)}
+        imageUrl={selectedPhoto?.imageUrl || ""}
+        spotName={selectedPhoto?.spotName || ""}
+        notes={selectedPhoto?.notes || ""}
+        nickname={selectedPhoto?.nickname}
+        isBookmarked={true}
+        onBookmark={() => {}}
+      />
     </Container>
   );
 };

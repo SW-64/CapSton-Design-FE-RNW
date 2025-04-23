@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { posts, Post } from "../data/posts";
 import { useNavigate } from "react-router-dom";
+import PhotoModal from "./PhotoModal";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -41,37 +42,53 @@ const PostCard = styled(motion.div)`
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  transition: transform 0.3s ease;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
   }
 `;
 
 const PostImage = styled.div<{ imageUrl: string }>`
-  height: 200px;
+  width: 100%;
+  padding-top: 100%;
   background-image: url(${(props) => props.imageUrl});
   background-size: cover;
   background-position: center;
+  position: relative;
 `;
 
 const PostContent = styled.div`
-  padding: 1.5rem;
+  padding: 1.2rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
 `;
 
 const PostTitle = styled.h2`
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const PostSpotName = styled.h3`
+  color: #6c5ce7;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
 `;
 
-const PostExcerpt = styled.p`
-  color: #aaa;
+const PostNotes = styled.p`
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 `;
@@ -80,8 +97,15 @@ const PostMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.8rem;
+`;
+
+const BookmarkCount = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: white;
 `;
 
 const Tags = styled.div`
@@ -190,6 +214,26 @@ const GalleryButton = styled(motion.button)`
   }
 `;
 
+const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
+  background: ${(props) =>
+    props.isBookmarked ? "#6c5ce7" : "rgba(255, 255, 255, 0.1)"};
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: ${(props) =>
+      props.isBookmarked ? "#5b4bc4" : "rgba(255, 255, 255, 0.2)"};
+  }
+`;
+
 const CommunityPage: React.FC = () => {
   const navigate = useNavigate();
   const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
@@ -197,6 +241,7 @@ const CommunityPage: React.FC = () => {
   const postsPerPage = 6;
   const [bookmarkedPosts, setBookmarkedPosts] = useState<number[]>([]);
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
     loadMorePosts();
@@ -210,7 +255,8 @@ const CommunityPage: React.FC = () => {
     setPage((prev) => prev + 1);
   };
 
-  const handleBookmark = (postId: number) => {
+  const handleBookmark = (postId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     setBookmarkedPosts((prev) =>
       prev.includes(postId)
         ? prev.filter((id) => id !== postId)
@@ -251,40 +297,24 @@ const CommunityPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -5 }}
+              onClick={() => setSelectedPost(post)}
             >
-              {post.imageUrl && <PostImage imageUrl={post.imageUrl} />}
+              <PostImage imageUrl={post.imageUrl} />
               <PostContent>
-                <PostTitle>{post.title}</PostTitle>
-                <PostExcerpt>{post.content}</PostExcerpt>
+                <PostTitle>{post.spotName}</PostTitle>
+                <PostNotes>{post.notes}</PostNotes>
                 <PostMeta>
-                  <span>{post.author}</span>
                   <span>{formatDate(post.createdAt)}</span>
-                </PostMeta>
-                <Tags>
-                  {post.tags.map((tag) => (
-                    <Tag key={tag}>{tag}</Tag>
-                  ))}
-                </Tags>
-                <ActionButtons>
-                  <ActionButton
-                    active={likedPosts.includes(post.id)}
-                    onClick={() => handleLike(post.id)}
+                  <BookmarkButton
+                    isBookmarked={bookmarkedPosts.includes(post.id)}
+                    onClick={(e) => handleBookmark(post.id, e)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <span>❤️</span>
-                    <span>좋아요</span>
-                  </ActionButton>
-                  <ActionButton
-                    active={bookmarkedPosts.includes(post.id)}
-                    onClick={() => handleBookmark(post.id)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
+                    {bookmarkedPosts.includes(post.id) ? "북마크됨" : "북마크"}
                     <span>🔖</span>
-                    <span>북마크</span>
-                  </ActionButton>
-                </ActionButtons>
+                  </BookmarkButton>
+                </PostMeta>
               </PostContent>
             </PostCard>
           ))}
@@ -325,6 +355,19 @@ const CommunityPage: React.FC = () => {
       >
         갤러리로 이동
       </GalleryButton>
+
+      <PhotoModal
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+        imageUrl={selectedPost?.imageUrl || ""}
+        spotName={selectedPost?.spotName || ""}
+        notes={selectedPost?.notes || ""}
+        nickname={selectedPost?.nickname}
+        isBookmarked={
+          selectedPost ? bookmarkedPosts.includes(selectedPost.id) : false
+        }
+        onBookmark={(e) => selectedPost && handleBookmark(selectedPost.id, e)}
+      />
     </Container>
   );
 };
