@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
@@ -126,17 +126,48 @@ const SignUpLink = styled.div`
   }
 `;
 
+const ErrorMessage = styled.div`
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.5rem;
+`;
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string>("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 로그인 로직 구현
-    console.log("로그인 시도:", { email, password });
-    // 로그인 성공 시 갤러리 페이지로 이동
-    navigate("/gallery");
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3001/api/auth/sign-in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("로그인 성공:", result);
+        // 토큰을 localStorage에 저장
+        localStorage.setItem("token", result.data);
+        // 갤러리 페이지로 이동
+        navigate("/gallery");
+      } else {
+        setError(result.message || "로그인에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("로그인 중 오류 발생:", error);
+      setError("로그인 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -172,6 +203,7 @@ const LoginPage: React.FC = () => {
             />
             <Label>비밀번호</Label>
           </InputGroup>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
           <Button
             type="submit"
             whileHover={{ scale: 1.02 }}

@@ -171,6 +171,7 @@ const ModalInfo = styled(motion.div)`
   color: white;
   padding: 20px;
   border-radius: 0 0 10px 10px;
+  white-space: pre-wrap;
 `;
 
 interface PhotoCardProps {
@@ -244,21 +245,96 @@ interface PhotoGridProps {
 }
 
 const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
+  const [apiPhotos, setApiPhotos] = useState<Photo[]>([]);
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        console.log("API 호출 시작");
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:3001/api/spots/external",
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+
+        // data가 배열이 아닌 경우를 처리
+        const spotsArray = Array.isArray(data) ? data : data.spots || [];
+
+        // API 응답을 Photo 형식에 맞게 변환
+        const transformedPhotos = spotsArray.map((item: any, index: number) => {
+          return {
+            id: item.galContentId || index.toString(),
+            title: item.galTitle || "제목 없음",
+            url: item.galWebImageUrl || "",
+            description: `촬영 장소: ${
+              item.galPhotographyLocation || "정보 없음"
+            }\n\n촬영 시기: ${
+              item.galPhotographyMonth
+                ? `${item.galPhotographyMonth.substring(
+                    0,
+                    4
+                  )}년 ${item.galPhotographyMonth.substring(4, 6)}월`
+                : "정보 없음"
+            }\n\n촬영자: ${item.galPhotographer || "정보 없음"}\n\n키워드: ${
+              item.galSearchKeyword || "정보 없음"
+            }`,
+          };
+        });
+
+        setApiPhotos(transformedPhotos.filter((photo: Photo) => photo.url)); // URL이 있는 사진만 필터링
+      } catch (error) {
+        console.error("API 호출 중 오류 발생:", error);
+      }
+    };
+
+    fetchPhotos();
+  }, []);
+
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [scrollY, setScrollY] = useState(0);
 
   const handleDownload = async (photo: Photo) => {
     try {
-      const response = await fetch(photo.url);
+      // 파일 확장자 추출
+      const extension = photo.url.split(".").pop() || "jpg";
+      const fileName = `${photo.title}.${extension}`;
+
+      // 백엔드 서버를 통해 이미지 다운로드
+      const response = await fetch("http://localhost:3001/api/download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          imageUrl: photo.url,
+          fileName: fileName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("다운로드 실패");
+      }
+
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${photo.title}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("이미지 다운로드 중 오류가 발생했습니다:", error);
     }
@@ -276,7 +352,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
   return (
     <>
       <Grid>
-        {photos.map((photo, index) => (
+        {apiPhotos.map((photo, index) => (
           <PhotoCardComponent
             key={photo.id}
             photo={photo}
