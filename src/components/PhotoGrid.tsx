@@ -247,6 +247,8 @@ interface PhotoGridProps {
 const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
   const [apiPhotos, setApiPhotos] = useState<Photo[]>([]);
 
+  console.log("hello world");
+
   useEffect(() => {
     const fetchPhotos = async () => {
       try {

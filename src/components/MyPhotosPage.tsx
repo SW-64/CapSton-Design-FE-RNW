@@ -1,48 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import PhotoModal from "./PhotoModal";
 
-interface MyPhoto {
-  id: number;
+interface Spot {
+  spotId: number;
+  userId: number;
   spotName: string;
+  like: number;
   imageUrl: string;
-  notes: string;
-  bookmarks: number;
+  isPublic: string;
+  extraInfo: string;
   createdAt: string;
+  updatedAt: string;
 }
 
-const myPhotos: MyPhoto[] = [
-  {
-    id: 1,
-    spotName: "남산서울타워",
-    imageUrl:
-      "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg",
-    notes: "야경이 정말 아름다운 곳입니다. 특히 저녁 8시에 가면 더 좋아요.",
-    bookmarks: 156,
-    createdAt: "2024-03-15T14:30:00",
-  },
-  {
-    id: 2,
-    spotName: "경복궁",
-    imageUrl:
-      "https://images.pexels.com/photos/931177/pexels-photo-931177.jpeg",
-    notes:
-      "봄에는 벚꽃이 만개해서 정말 아름다워요. 주말에는 사람이 많으니 평일에 가는 것을 추천합니다.",
-    bookmarks: 243,
-    createdAt: "2024-03-14T09:15:00",
-  },
-  {
-    id: 3,
-    spotName: "해운대",
-    imageUrl:
-      "https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg",
-    notes: "여름에는 정말 시원하고 좋습니다. 해수욕장 주변에 맛집도 많아요.",
-    bookmarks: 189,
-    createdAt: "2024-03-13T18:45:00",
-  },
-];
+interface UserSpot {
+  userId: number;
+  nickName: string;
+  profile: string;
+  Spot: Spot[];
+}
 
 const Container = styled.div`
   min-height: 100vh;
@@ -86,126 +65,95 @@ const PhotoCard = styled(motion.div)`
 
   &:hover {
     transform: translateY(-5px);
-    .overlay {
-      opacity: 1;
-    }
   }
 `;
 
 const PhotoImage = styled.div<{ imageUrl: string }>`
   width: 100%;
-  padding-top: 100%;
+  height: 200px;
   background-image: url(${(props) => props.imageUrl});
   background-size: cover;
   background-position: center;
-  position: relative;
 `;
 
 const PhotoInfo = styled.div`
-  padding: 1.2rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  color: white;
+  padding: 1rem;
 `;
 
-const PhotoTitle = styled.h2`
+const PhotoTitle = styled.h3`
   color: white;
-  font-size: 1.1rem;
   margin-bottom: 0.5rem;
-  font-weight: 600;
 `;
 
-const PhotoNotes = styled.p`
-  color: rgba(255, 255, 255, 0.9);
+const PhotoExtraInfo = styled.p`
+  color: #888;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 `;
 
 const PhotoMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: #888;
   font-size: 0.8rem;
 `;
 
-const BookmarkCount = styled.div`
+const LikeCount = styled.div`
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  color: white;
 `;
 
-const MyBadge = styled.div`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: #6c5ce7;
+const PublicBadge = styled.span<{ isPublic: boolean }>`
+  background: ${(props) => (props.isPublic ? "#00b894" : "#e74c3c")};
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
   font-size: 0.8rem;
-  font-weight: bold;
-  z-index: 1;
 `;
 
-const Overlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+const ToggleSwitch = styled.div<{ isPublic: boolean }>`
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: ${(props) => (props.isPublic ? "#00b894" : "#e74c3c")};
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: ${(props) => (props.isPublic ? "28px" : "2px")};
+    transition: left 0.3s ease;
+  }
+`;
+
+const NavigationButtons = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  margin-top: 2rem;
 `;
 
-const ToggleButton = styled(motion.button)<{ isPublic: boolean }>`
-  background: ${(props) => (props.isPublic ? "#4CAF50" : "#f44336")};
+const NavigationButton = styled(motion.button)`
+  background: #6c5ce7;
   color: white;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &:hover {
-    background: ${(props) => (props.isPublic ? "#45a049" : "#d32f2f")};
-  }
+  font-size: 1rem;
+  font-weight: 600;
 `;
 
-const ActionButton = styled(motion.button)`
-  background: rgba(255, 255, 255, 0.9);
-  color: #1e1e1e;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-
-  &:hover {
-    background: white;
-  }
-`;
-
-const UploadButton = styled(motion.button)`
+const MenuButton = styled(motion.button)`
   position: fixed;
   bottom: 30px;
   right: 30px;
@@ -228,48 +176,102 @@ const UploadButton = styled(motion.button)`
   }
 `;
 
-const NavigationButton = styled(motion.button)`
+const MenuContainer = styled(motion.div)`
   position: fixed;
-  bottom: 30px;
+  bottom: 100px;
   right: 30px;
-  background: #6c5ce7;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+`;
+
+const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
+  background: ${(props) => (props.disabled ? "#3d3d3d" : "#6c5ce7")};
   color: white;
   border: none;
-  padding: 1rem 2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 8px;
+  cursor: ${(props) => (props.disabled ? "default" : "pointer")};
   font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-weight: 600;
+  white-space: nowrap;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
 
   &:hover {
-    background: #5b4bc4;
+    background: ${(props) => (props.disabled ? "#3d3d3d" : "#5b4bc4")};
   }
 `;
 
 const MyPhotosPage: React.FC = () => {
   const navigate = useNavigate();
-  const [photos, setPhotos] = useState<MyPhoto[]>(myPhotos);
-  const [isPublic, setIsPublic] = useState<{ [key: number]: boolean }>({});
-  const [selectedPhoto, setSelectedPhoto] = useState<MyPhoto | null>(null);
+  const [userSpots, setUserSpots] = useState<UserSpot[]>([]);
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleEdit = (id: number) => {
-    console.log("Edit photo:", id);
+  const togglePublicStatus = async (spotId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/spots/${spotId}/visibility`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "공개 상태 변경 실패");
+      }
+
+      const updatedSpot = responseData.data;
+
+      setUserSpots((prevSpots) =>
+        prevSpots.map((userSpot) => ({
+          ...userSpot,
+          Spot: userSpot.Spot.map((spot) =>
+            spot.spotId === spotId
+              ? { ...spot, isPublic: updatedSpot.isPublic }
+              : spot
+          ),
+        }))
+      );
+    } catch (error) {
+      console.error("공개 상태 변경 중 오류 발생:", error);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setPhotos(photos.filter((photo) => photo.id !== id));
-  };
+  useEffect(() => {
+    const fetchMySpots = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:3001/api/users/getMySpot",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-  const handleTogglePublic = (id: number) => {
-    setIsPublic((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+        if (!response.ok) {
+          throw new Error("API 호출 실패");
+        }
+
+        const data = await response.json();
+        setUserSpots(data.data);
+      } catch (error) {
+        console.error("내 스팟 조회 중 오류 발생:", error);
+      }
+    };
+
+    fetchMySpots();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -289,89 +291,95 @@ const MyPhotosPage: React.FC = () => {
 
       <PhotoGrid>
         <AnimatePresence>
-          {photos.map((photo, index) => (
-            <PhotoCard
-              key={photo.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => setSelectedPhoto(photo)}
-            >
-              <MyBadge>My</MyBadge>
-              <PhotoImage imageUrl={photo.imageUrl} />
-              <PhotoInfo>
-                <PhotoTitle>{photo.spotName}</PhotoTitle>
-                <PhotoNotes>{photo.notes}</PhotoNotes>
-                <PhotoMeta>
-                  <span>{formatDate(photo.createdAt)}</span>
-                  <BookmarkCount>
-                    <span>🔖</span>
-                    <span>{photo.bookmarks}</span>
-                  </BookmarkCount>
-                </PhotoMeta>
-              </PhotoInfo>
-              <Overlay className="overlay">
-                <ToggleButton
-                  isPublic={isPublic[photo.id] || false}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTogglePublic(photo.id);
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isPublic[photo.id] ? "공개" : "비공개"}
-                </ToggleButton>
-                <ActionButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEdit(photo.id);
-                  }}
-                >
-                  수정
-                </ActionButton>
-                <ActionButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(photo.id);
-                  }}
-                >
-                  삭제
-                </ActionButton>
-              </Overlay>
-            </PhotoCard>
-          ))}
+          {userSpots.map((userSpot) =>
+            userSpot.Spot.map((spot) => (
+              <PhotoCard
+                key={spot.spotId}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                onClick={() => setSelectedSpot(spot)}
+              >
+                <PhotoImage imageUrl={spot.imageUrl} />
+                <PhotoInfo>
+                  <PhotoTitle>{spot.spotName}</PhotoTitle>
+                  <PhotoExtraInfo>{spot.extraInfo}</PhotoExtraInfo>
+                  <PhotoMeta>
+                    <span>{formatDate(spot.createdAt)}</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <PublicBadge isPublic={spot.isPublic === "PUBLIC"}>
+                        {spot.isPublic === "PUBLIC" ? "공개" : "비공개"}
+                      </PublicBadge>
+                      <ToggleSwitch
+                        isPublic={spot.isPublic === "PUBLIC"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePublicStatus(spot.spotId);
+                        }}
+                      />
+                    </div>
+                  </PhotoMeta>
+                </PhotoInfo>
+              </PhotoCard>
+            ))
+          )}
         </AnimatePresence>
       </PhotoGrid>
 
-      <UploadButton
+      <MenuButton
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => console.log("Upload new photo")}
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
       >
-        +
-      </UploadButton>
+        {isMenuOpen ? "×" : "≡"}
+      </MenuButton>
 
-      <NavigationButton
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate("/community")}
-      >
-        커뮤니티로 이동
-      </NavigationButton>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <MenuContainer
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/community")}
+            >
+              커뮤니티
+            </MenuItem>
+            <MenuItem disabled>내가 올린 사진</MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/bookmarks")}
+            >
+              북마크 모음
+            </MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/gallery")}
+            >
+              갤러리로 이동
+            </MenuItem>
+          </MenuContainer>
+        )}
+      </AnimatePresence>
 
       <PhotoModal
-        isOpen={!!selectedPhoto}
-        onClose={() => setSelectedPhoto(null)}
-        imageUrl={selectedPhoto?.imageUrl || ""}
-        spotName={selectedPhoto?.spotName || ""}
-        notes={selectedPhoto?.notes || ""}
-        nickname="나"
+        isOpen={!!selectedSpot}
+        onClose={() => setSelectedSpot(null)}
+        imageUrl={selectedSpot?.imageUrl || ""}
+        spotName={selectedSpot?.spotName || ""}
+        notes={selectedSpot?.extraInfo || ""}
+        nickname={userSpots[0]?.nickName}
         isBookmarked={false}
         onBookmark={() => {}}
       />

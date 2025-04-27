@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { bookmarkedPhotos, BookmarkedPhoto } from "../data/bookmarks";
@@ -51,27 +51,27 @@ const FilterButton = styled(motion.button)<{ active?: boolean }>`
 `;
 
 const MasonryGrid = styled.div`
-  column-count: 4;
-  column-gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
+  padding: 0 1rem;
 
   @media (max-width: 1200px) {
-    column-count: 3;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   @media (max-width: 900px) {
-    column-count: 2;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @media (max-width: 600px) {
-    column-count: 1;
+    grid-template-columns: repeat(1, 1fr);
   }
 `;
 
 const PhotoCard = styled(motion.div)`
-  break-inside: avoid;
-  margin-bottom: 1.5rem;
   background: #1e1e1e;
   border-radius: 12px;
   overflow: hidden;
@@ -177,20 +177,21 @@ const ActionButton = styled(motion.button)`
   }
 `;
 
-const NavigationButton = styled(motion.button)`
+const MenuButton = styled(motion.button)`
   position: fixed;
   bottom: 30px;
   right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   background: #6c5ce7;
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 
@@ -199,16 +200,123 @@ const NavigationButton = styled(motion.button)`
   }
 `;
 
+const MenuContainer = styled(motion.div)`
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+`;
+
+const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
+  background: ${(props) => (props.disabled ? "#3d3d3d" : "#6c5ce7")};
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: ${(props) => (props.disabled ? "default" : "pointer")};
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: ${(props) => (props.disabled ? "#3d3d3d" : "#5b4bc4")};
+  }
+`;
+
+interface BookmarkSpot {
+  spotId: number;
+  userId: number;
+  type: string;
+}
+
+interface SpotDetail {
+  spotId: number;
+  userId: number;
+  spotName: string;
+  imageUrl: string;
+  isPublic: string;
+  extraInfo: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const BookmarksPage: React.FC = () => {
   const navigate = useNavigate();
-  const [photos, setPhotos] = useState<BookmarkedPhoto[]>(bookmarkedPhotos);
-  const [filter, setFilter] = useState<"date" | "likes">("date");
-  const [selectedPhoto, setSelectedPhoto] = useState<BookmarkedPhoto | null>(
-    null
-  );
+  const [bookmarkedSpots, setBookmarkedSpots] = useState<SpotDetail[]>([]);
+  const [selectedSpot, setSelectedSpot] = useState<SpotDetail | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleUnbookmark = (id: number) => {
-    setPhotos(photos.filter((photo) => photo.id !== id));
+  const fetchBookmarkedSpots = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      // 1. 먼저 북마크된 명소 목록을 가져옵니다
+      const bookmarkResponse = await fetch(
+        "http://localhost:3001/api/spots/bookmark",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!bookmarkResponse.ok) {
+        throw new Error("북마크 조회 실패");
+      }
+
+      const bookmarkData = await bookmarkResponse.json();
+      const bookmarks: BookmarkSpot[] = bookmarkData.data;
+
+      // 2. 각 북마크된 명소의 상세 정보를 가져옵니다
+      const spotDetailsPromises = bookmarks.map((bookmark) =>
+        fetch(`http://localhost:3001/api/spots/${bookmark.spotId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }).then((res) => res.json())
+      );
+
+      const spotDetailsResponses = await Promise.all(spotDetailsPromises);
+      const spotDetails = spotDetailsResponses.map((response) => response.data);
+
+      setBookmarkedSpots(spotDetails);
+    } catch (error) {
+      console.error("북마크된 명소 조회 중 오류 발생:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookmarkedSpots();
+  }, []);
+
+  const handleUnbookmark = async (spotId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/spots/${spotId}/bookmark`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("북마크 해제 실패");
+      }
+
+      // 성공적으로 북마크가 해제되면 목록에서 제거
+      setBookmarkedSpots((prev) =>
+        prev.filter((spot) => spot.spotId !== spotId)
+      );
+    } catch (error) {
+      console.error("북마크 해제 중 오류 발생:", error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -220,60 +328,30 @@ const BookmarksPage: React.FC = () => {
     });
   };
 
-  const sortedPhotos = [...photos].sort((a, b) => {
-    if (filter === "date") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-    return b.bookmarks - a.bookmarks;
-  });
-
   return (
     <Container>
       <Header>
         <Title>북마크</Title>
-        <Subtitle>저장한 사진들을 모아보세요</Subtitle>
+        <Subtitle>저장한 명소들을 확인해보세요</Subtitle>
       </Header>
-
-      <FilterContainer>
-        <FilterButton
-          active={filter === "date"}
-          onClick={() => setFilter("date")}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          최신순
-        </FilterButton>
-        <FilterButton
-          active={filter === "likes"}
-          onClick={() => setFilter("likes")}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          인기순
-        </FilterButton>
-      </FilterContainer>
 
       <MasonryGrid>
         <AnimatePresence>
-          {sortedPhotos.map((photo, index) => (
+          {bookmarkedSpots.map((spot, index) => (
             <PhotoCard
-              key={photo.id}
+              key={spot.spotId}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => setSelectedPhoto(photo)}
+              onClick={() => setSelectedSpot(spot)}
             >
-              <PhotoImage imageUrl={photo.imageUrl} />
+              <PhotoImage imageUrl={spot.imageUrl} />
               <PhotoInfo>
-                <PhotoSpotName>{photo.spotName}</PhotoSpotName>
-                <PhotoNotes>{photo.notes}</PhotoNotes>
+                <PhotoSpotName>{spot.spotName}</PhotoSpotName>
+                <PhotoNotes>{spot.extraInfo}</PhotoNotes>
                 <PhotoMeta>
-                  <span>{formatDate(photo.createdAt)}</span>
-                  <BookmarkCount>
-                    <span>🔖</span>
-                    <span>{photo.bookmarks}</span>
-                  </BookmarkCount>
+                  <span>{formatDate(spot.createdAt)}</span>
                 </PhotoMeta>
               </PhotoInfo>
               <Overlay className="overlay">
@@ -282,7 +360,7 @@ const BookmarksPage: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleUnbookmark(photo.id);
+                    handleUnbookmark(spot.spotId);
                   }}
                 >
                   북마크 해제
@@ -293,23 +371,56 @@ const BookmarksPage: React.FC = () => {
         </AnimatePresence>
       </MasonryGrid>
 
-      <NavigationButton
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate("/community")}
+      <MenuButton
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
       >
-        커뮤니티로 이동
-      </NavigationButton>
+        {isMenuOpen ? "×" : "≡"}
+      </MenuButton>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <MenuContainer
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/community")}
+            >
+              커뮤니티
+            </MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/my-photos")}
+            >
+              내가 올린 사진
+            </MenuItem>
+            <MenuItem disabled>북마크 모음</MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/gallery")}
+            >
+              갤러리로 이동
+            </MenuItem>
+          </MenuContainer>
+        )}
+      </AnimatePresence>
 
       <PhotoModal
-        isOpen={!!selectedPhoto}
-        onClose={() => setSelectedPhoto(null)}
-        imageUrl={selectedPhoto?.imageUrl || ""}
-        spotName={selectedPhoto?.spotName || ""}
-        notes={selectedPhoto?.notes || ""}
-        nickname={selectedPhoto?.nickname}
+        isOpen={!!selectedSpot}
+        onClose={() => setSelectedSpot(null)}
+        imageUrl={selectedSpot?.imageUrl || ""}
+        spotName={selectedSpot?.spotName || ""}
+        notes={selectedSpot?.extraInfo || ""}
+        nickname=""
         isBookmarked={true}
-        onBookmark={() => {}}
+        onBookmark={() => selectedSpot && handleUnbookmark(selectedSpot.spotId)}
       />
     </Container>
   );

@@ -7,6 +7,7 @@ import LoginPage from "./components/LoginPage";
 import CommunityPage from "./components/CommunityPage";
 import MyPhotosPage from "./components/MyPhotosPage";
 import BookmarksPage from "./components/BookmarksPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { photos } from "./data/photos";
 
 const AppContainer = styled.div`
@@ -33,7 +34,14 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/gallery" element={<Gallery />} />
-        <Route path="/community" element={<CommunityPage />} />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <CommunityPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/my-photos" element={<MyPhotosPage />} />
         <Route path="/bookmarks" element={<BookmarksPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

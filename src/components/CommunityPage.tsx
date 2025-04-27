@@ -1,9 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import { posts, Post } from "../data/posts";
-import { useNavigate } from "react-router-dom";
 import PhotoModal from "./PhotoModal";
+
+interface Spot {
+  spotId: number;
+  spotName: string;
+  imageUrl: string;
+  userId: number;
+  createdAt: string;
+}
+
+interface UserSpot {
+  userId: number;
+  nickName: string;
+  profile: string;
+  Spot: Spot[];
+}
+
+interface BookmarkData {
+  spotId: number;
+  userId: number;
+  type: string;
+}
 
 const Container = styled.div`
   min-height: 100vh;
@@ -28,7 +48,7 @@ const Subtitle = styled.p`
   font-size: 1.1rem;
 `;
 
-const PostGrid = styled.div`
+const PhotoGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
@@ -36,7 +56,7 @@ const PostGrid = styled.div`
   margin: 0 auto;
 `;
 
-const PostCard = styled(motion.div)`
+const PhotoCard = styled(motion.div)`
   background: #1e1e1e;
   border-radius: 12px;
   overflow: hidden;
@@ -50,162 +70,91 @@ const PostCard = styled(motion.div)`
   }
 `;
 
-const PostImage = styled.div<{ imageUrl: string }>`
+const PhotoImage = styled.div<{ imageUrl: string }>`
   width: 100%;
-  padding-top: 100%;
+  height: 200px;
   background-image: url(${(props) => props.imageUrl});
   background-size: cover;
   background-position: center;
+`;
+
+const PhotoInfo = styled.div`
+  padding: 1rem;
   position: relative;
+  min-height: 100px;
 `;
 
-const PostContent = styled.div`
-  padding: 1.2rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+const PhotoTitle = styled.h3`
   color: white;
-`;
-
-const PostTitle = styled.h2`
-  color: white;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-`;
-
-const PostSpotName = styled.h3`
-  color: #6c5ce7;
-  font-size: 1rem;
   margin-bottom: 0.5rem;
 `;
 
-const PostNotes = styled.p`
-  color: rgba(255, 255, 255, 0.9);
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+`;
+
+const UserProfile = styled.img`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+`;
+
+const UserName = styled.span`
+  color: #888;
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const PostMeta = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.8rem;
-`;
-
-const BookmarkCount = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: white;
-`;
-
-const Tags = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-`;
-
-const Tag = styled.span`
-  background: rgba(255, 255, 255, 0.1);
-  color: #aaa;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-`;
-
-const ActionButton = styled(motion.button)<{ active?: boolean }>`
-  background: ${(props) => (props.active ? "#6c5ce7" : "#2d2d2d")};
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.3s ease;
-
-  &:hover {
-    background: ${(props) => (props.active ? "#5b4bc4" : "#3d3d3d")};
-  }
-`;
-
-const LoadMoreButton = styled(motion.button)`
-  background: #6c5ce7;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 2rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-
-  &:hover {
-    background: #5b4bc4;
-  }
 `;
 
 const NavigationButtons = styled.div`
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
   display: flex;
+  justify-content: center;
   gap: 1rem;
-  z-index: 1000;
+  margin-top: 2rem;
 `;
 
 const NavigationButton = styled(motion.button)`
   background: #6c5ce7;
   color: white;
   border: none;
-  padding: 1rem 2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 8px;
-  font-size: 1rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background: #5b4bc4;
-  }
+  font-size: 1rem;
+  font-weight: 600;
 `;
 
 const GalleryButton = styled(motion.button)`
+  background: #00b894;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 200px;
+  margin: 1rem auto;
+`;
+
+const MenuButton = styled(motion.button)`
   position: fixed;
   bottom: 30px;
-  left: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   background: #6c5ce7;
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 
@@ -214,159 +163,288 @@ const GalleryButton = styled(motion.button)`
   }
 `;
 
-const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
-  background: ${(props) =>
-    props.isBookmarked ? "#6c5ce7" : "rgba(255, 255, 255, 0.1)"};
+const MenuContainer = styled(motion.div)`
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+`;
+
+const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
+  background: ${(props) => (props.disabled ? "#3d3d3d" : "#6c5ce7")};
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.3s ease;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: ${(props) => (props.disabled ? "default" : "pointer")};
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: ${(props) =>
-      props.isBookmarked ? "#5b4bc4" : "rgba(255, 255, 255, 0.2)"};
+    background: ${(props) => (props.disabled ? "#3d3d3d" : "#5b4bc4")};
+  }
+`;
+
+const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: ${(props) => (props.isBookmarked ? "#ffd700" : "white")};
+  font-size: 20px;
+  z-index: 10;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.7);
   }
 `;
 
 const CommunityPage: React.FC = () => {
   const navigate = useNavigate();
-  const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
-  const [page, setPage] = useState(1);
-  const postsPerPage = 6;
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<number[]>([]);
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [userSpots, setUserSpots] = useState<UserSpot[]>([]);
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserSpot | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [bookmarkedSpots, setBookmarkedSpots] = useState<Set<number>>(
+    new Set()
+  );
+
+  const getSortedSpots = () => {
+    const allSpots = userSpots.flatMap((userSpot) =>
+      userSpot.Spot.map((spot) => ({
+        ...spot,
+        userInfo: {
+          nickName: userSpot.nickName,
+          profile: userSpot.profile,
+        },
+      }))
+    );
+
+    return allSpots.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  };
 
   useEffect(() => {
-    loadMorePosts();
+    const fetchUserSpots = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:3001/api/spots/user-photo",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("API 호출 실패");
+        }
+
+        const data = await response.json();
+        setUserSpots(data.data);
+      } catch (error) {
+        console.error("사용자 스팟 조회 중 오류 발생:", error);
+      }
+    };
+
+    const fetchBookmarkedSpots = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:3001/api/spots/bookmark",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("북마크 조회 실패");
+        }
+
+        const data = await response.json();
+        const bookmarks = data.data as BookmarkData[];
+        const bookmarkSet: Set<number> = new Set(
+          bookmarks.map((bookmark) => bookmark.spotId)
+        );
+        setBookmarkedSpots(bookmarkSet);
+      } catch (error) {
+        console.error("북마크 조회 중 오류 발생:", error);
+      }
+    };
+
+    fetchUserSpots();
+    fetchBookmarkedSpots();
   }, []);
 
-  const loadMorePosts = () => {
-    const startIndex = (page - 1) * postsPerPage;
-    const endIndex = startIndex + postsPerPage;
-    const newPosts = posts.slice(startIndex, endIndex);
-    setVisiblePosts((prev) => [...prev, ...newPosts]);
-    setPage((prev) => prev + 1);
-  };
+  const toggleBookmark = async (
+    spotId: number,
+    isCurrentlyBookmarked: boolean
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/spots/${spotId}/bookmark`,
+        {
+          method: isCurrentlyBookmarked ? "DELETE" : "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  const handleBookmark = (postId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setBookmarkedPosts((prev) =>
-      prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId]
-    );
-  };
+      if (!response.ok) {
+        throw new Error("북마크 처리 실패");
+      }
 
-  const handleLike = (postId: number) => {
-    setLikedPosts((prev) =>
-      prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId]
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+      setBookmarkedSpots((prev) => {
+        const newSet = new Set(prev);
+        if (isCurrentlyBookmarked) {
+          newSet.delete(spotId);
+        } else {
+          newSet.add(spotId);
+        }
+        return newSet;
+      });
+    } catch (error) {
+      console.error("북마크 처리 중 오류 발생:", error);
+    }
   };
 
   return (
     <Container>
       <Header>
         <Title>커뮤니티</Title>
-        <Subtitle>사진가들과 경험과 지식을 공유하세요</Subtitle>
+        <Subtitle>다른 사용자들이 공유한 명소를 구경해보세요</Subtitle>
       </Header>
 
-      <PostGrid>
+      <PhotoGrid>
         <AnimatePresence>
-          {visiblePosts.map((post, index) => (
-            <PostCard
-              key={post.id}
+          {getSortedSpots().map((spot) => (
+            <PhotoCard
+              key={spot.spotId}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              onClick={() => setSelectedPost(post)}
+              exit={{ opacity: 0, y: -20 }}
+              onClick={() => {
+                setSelectedSpot(spot);
+                setSelectedUser({
+                  userId: spot.userId,
+                  nickName: spot.userInfo.nickName,
+                  profile: spot.userInfo.profile,
+                  Spot: [],
+                });
+              }}
             >
-              <PostImage imageUrl={post.imageUrl} />
-              <PostContent>
-                <PostTitle>{post.spotName}</PostTitle>
-                <PostNotes>{post.notes}</PostNotes>
-                <PostMeta>
-                  <span>{formatDate(post.createdAt)}</span>
-                  <BookmarkButton
-                    isBookmarked={bookmarkedPosts.includes(post.id)}
-                    onClick={(e) => handleBookmark(post.id, e)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {bookmarkedPosts.includes(post.id) ? "북마크됨" : "북마크"}
-                    <span>🔖</span>
-                  </BookmarkButton>
-                </PostMeta>
-              </PostContent>
-            </PostCard>
+              <PhotoImage imageUrl={spot.imageUrl} />
+              <PhotoInfo>
+                <PhotoTitle>{spot.spotName}</PhotoTitle>
+                <UserInfo>
+                  <UserProfile
+                    src={spot.userInfo.profile}
+                    alt={spot.userInfo.nickName}
+                  />
+                  <UserName>{spot.userInfo.nickName}</UserName>
+                </UserInfo>
+                <BookmarkButton
+                  isBookmarked={bookmarkedSpots.has(spot.spotId)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleBookmark(
+                      spot.spotId,
+                      bookmarkedSpots.has(spot.spotId)
+                    );
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {bookmarkedSpots.has(spot.spotId) ? "★" : "☆"}
+                </BookmarkButton>
+              </PhotoInfo>
+            </PhotoCard>
           ))}
         </AnimatePresence>
-      </PostGrid>
+      </PhotoGrid>
 
-      {visiblePosts.length < posts.length && (
-        <LoadMoreButton
-          onClick={loadMorePosts}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          더 보기
-        </LoadMoreButton>
-      )}
-
-      <NavigationButtons>
-        <NavigationButton
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/my-photos")}
-        >
-          내가 올린 사진
-        </NavigationButton>
-        <NavigationButton
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/bookmarks")}
-        >
-          북마크 모음
-        </NavigationButton>
-      </NavigationButtons>
-
-      <GalleryButton
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate("/gallery")}
+      <MenuButton
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
       >
-        갤러리로 이동
-      </GalleryButton>
+        {isMenuOpen ? "×" : "≡"}
+      </MenuButton>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <MenuContainer
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <MenuItem disabled>커뮤니티</MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/my-photos")}
+            >
+              내가 올린 사진
+            </MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/bookmarks")}
+            >
+              북마크 모음
+            </MenuItem>
+            <MenuItem
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/gallery")}
+            >
+              갤러리로 이동
+            </MenuItem>
+          </MenuContainer>
+        )}
+      </AnimatePresence>
 
       <PhotoModal
-        isOpen={!!selectedPost}
-        onClose={() => setSelectedPost(null)}
-        imageUrl={selectedPost?.imageUrl || ""}
-        spotName={selectedPost?.spotName || ""}
-        notes={selectedPost?.notes || ""}
-        nickname={selectedPost?.nickname}
+        isOpen={!!selectedSpot}
+        onClose={() => {
+          setSelectedSpot(null);
+          setSelectedUser(null);
+        }}
+        imageUrl={selectedSpot?.imageUrl || ""}
+        spotName={selectedSpot?.spotName || ""}
+        notes=""
+        nickname={selectedUser?.nickName}
         isBookmarked={
-          selectedPost ? bookmarkedPosts.includes(selectedPost.id) : false
+          selectedSpot ? bookmarkedSpots.has(selectedSpot.spotId) : false
         }
-        onBookmark={(e) => selectedPost && handleBookmark(selectedPost.id, e)}
+        onBookmark={() =>
+          selectedSpot &&
+          toggleBookmark(
+            selectedSpot.spotId,
+            bookmarkedSpots.has(selectedSpot.spotId)
+          )
+        }
       />
     </Container>
   );
