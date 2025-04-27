@@ -111,6 +111,8 @@ const Modal = styled(motion.div)`
 `;
 
 const ModalContent = styled(motion.div)`
+  display: flex;
+  gap: 30px;
   max-width: 90%;
   max-height: 90vh;
   position: relative;
@@ -118,11 +120,19 @@ const ModalContent = styled(motion.div)`
   padding: 20px;
   border-radius: 10px;
 
-  img {
-    max-width: 100%;
-    max-height: 90vh;
-    object-fit: contain;
-    border-radius: 5px;
+  .image-container {
+    flex: 1;
+    max-width: 60%;
+    display: flex;
+    align-items: center;
+
+    img {
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 5px;
+    }
   }
 `;
 
@@ -163,15 +173,83 @@ const IconButton = styled.button`
 `;
 
 const ModalInfo = styled(motion.div)`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex: 1;
+  max-width: 40%;
   background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 20px;
-  border-radius: 0 0 10px 10px;
-  white-space: pre-wrap;
+  padding: 30px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  h3 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  p {
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+`;
+
+const NoticeModal = styled(motion.div)`
+  position: fixed;
+  top: 35%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2rem;
+  border-radius: 15px;
+  color: white;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  z-index: 2000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const NoticeContent = styled.div`
+  font-size: 1.1rem;
+  line-height: 2;
+  white-space: pre-line;
+  margin-bottom: 2rem;
+  text-align: center;
+`;
+
+const NoticeButton = styled.button`
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #5b4bc4;
+  }
+`;
+
+const ModalOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1999;
+  padding-bottom: 5vh;
+  padding-right: 5vw;
 `;
 
 interface PhotoCardProps {
@@ -246,8 +324,13 @@ interface PhotoGridProps {
 
 const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
   const [apiPhotos, setApiPhotos] = useState<Photo[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [showNotice, setShowNotice] = useState(true);
 
-  console.log("hello world");
+  const handleCloseNotice = () => {
+    setShowNotice(false);
+  };
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -276,161 +359,30 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
             id: item.galContentId || index.toString(),
             title: item.galTitle || "제목 없음",
             url: item.galWebImageUrl || "",
-            description: `촬영 장소: ${
-              item.galPhotographyLocation || "정보 없음"
-            }\n\n촬영 시기: ${
-              item.galPhotographyMonth
-                ? `${item.galPhotographyMonth.substring(
-                    0,
-                    4
-                  )}년 ${item.galPhotographyMonth.substring(4, 6)}월`
-                : "정보 없음"
-            }\n\n촬영자: ${item.galPhotographer || "정보 없음"}\n\n키워드: ${
-              item.galSearchKeyword || "정보 없음"
-            }`,
+            description: item.galPhotographyLocation || "위치 정보 없음",
           };
         });
 
-        setApiPhotos(transformedPhotos.filter((photo: Photo) => photo.url)); // URL이 있는 사진만 필터링
+        setApiPhotos(transformedPhotos);
       } catch (error) {
-        console.error("API 호출 중 오류 발생:", error);
+        console.error("API 호출 실패:", error);
       }
     };
 
     fetchPhotos();
   }, []);
 
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [scrollY, setScrollY] = useState(0);
-
-  const handleDownload = async (photo: Photo) => {
-    try {
-      // 파일 확장자 추출
-      const extension = photo.url.split(".").pop() || "jpg";
-      const fileName = `${photo.title}.${extension}`;
-
-      // 백엔드 서버를 통해 이미지 다운로드
-      const response = await fetch("http://localhost:3001/api/download", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          imageUrl: photo.url,
-          fileName: fileName,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("다운로드 실패");
-      }
-
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.error("이미지 다운로드 중 오류가 발생했습니다:", error);
-    }
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <>
-      <Grid>
-        {apiPhotos.map((photo, index) => (
-          <PhotoCardComponent
-            key={photo.id}
-            photo={photo}
-            index={index}
-            onPhotoClick={setSelectedPhoto}
-          />
-        ))}
-      </Grid>
-
-      <ExpandableNav />
-
-      <AnimatePresence>
-        {selectedPhoto && (
-          <Modal
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPhoto(null)}
-          >
-            <ModalContent
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img src={selectedPhoto.url} alt={selectedPhoto.title} />
-              <ButtonGroup>
-                <IconButton
-                  onClick={() => handleDownload(selectedPhoto)}
-                  title="이미지 저장"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                </IconButton>
-                <IconButton onClick={() => setSelectedPhoto(null)} title="닫기">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </IconButton>
-              </ButtonGroup>
-              <ModalInfo
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 100, opacity: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h3>{selectedPhoto.title}</h3>
-                <p>{selectedPhoto.description}</p>
-              </ModalInfo>
-            </ModalContent>
-          </Modal>
-        )}
-      </AnimatePresence>
-    </>
+    <Grid>
+      {apiPhotos.map((photo, index) => (
+        <PhotoCardComponent
+          key={photo.id}
+          photo={photo}
+          index={index}
+          onPhotoClick={(photo) => setSelectedPhoto(photo)}
+        />
+      ))}
+    </Grid>
   );
 };
 

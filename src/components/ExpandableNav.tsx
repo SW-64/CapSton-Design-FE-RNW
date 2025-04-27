@@ -15,8 +15,8 @@ const NavContainer = styled.div`
 `;
 
 const ExpandButton = styled(motion.button)`
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -34,24 +34,24 @@ const ExpandButton = styled(motion.button)`
   }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     transition: transform 0.3s ease;
   }
 `;
 
 const MenuContainer = styled(motion.div)`
   position: absolute;
-  bottom: 50px;
+  bottom: 80px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
   align-items: center;
 `;
 
 const MenuButton = styled(motion.button)`
-  padding: 10px 20px;
-  border-radius: 20px;
+  padding: 15px 30px;
+  border-radius: 25px;
   background: rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -59,6 +59,7 @@ const MenuButton = styled(motion.button)`
   white-space: nowrap;
   backdrop-filter: blur(4px);
   transition: all 0.3s ease;
+  font-size: 1.1rem;
 
   &:hover {
     background: rgba(0, 0, 0, 0.9);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LoginContainer = styled(motion.div)`
   min-height: 100vh;
@@ -133,11 +133,62 @@ const ErrorMessage = styled.div`
   margin-top: 0.5rem;
 `;
 
+const SignUpModal = styled(motion.div)`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+`;
+
+const ModalOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  &:hover {
+    color: #fff;
+  }
+`;
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [signUpData, setSignUpData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
+    profile:
+      "https://cphoto.asiae.co.kr/listimglink/1/2013051007205672589_1.jpg",
+    nickname: "",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +218,43 @@ const LoginPage: React.FC = () => {
     } catch (error) {
       console.error("로그인 중 오류 발생:", error);
       setError("로그인 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3001/api/auth/sign-up", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(signUpData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("회원가입 성공:", result);
+        setShowSignUp(false);
+        // 회원가입 성공 후 입력 필드 초기화
+        setSignUpData({
+          name: "",
+          email: "",
+          password: "",
+          passwordConfirm: "",
+          profile:
+            "https://cphoto.asiae.co.kr/listimglink/1/2013051007205672589_1.jpg",
+          nickname: "",
+        });
+      } else {
+        setError(result.message || "회원가입에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("회원가입 중 오류 발생:", error);
+      setError("회원가입 중 오류가 발생했습니다.");
     }
   };
 
@@ -203,6 +291,12 @@ const LoginPage: React.FC = () => {
             />
             <Label>비밀번호</Label>
           </InputGroup>
+          <SignUpLink>
+            계정이 없으신가요?
+            <a href="#" onClick={() => setShowSignUp(true)}>
+              회원가입
+            </a>
+          </SignUpLink>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <Button
             type="submit"
@@ -212,14 +306,105 @@ const LoginPage: React.FC = () => {
             로그인
           </Button>
           <ForgotPassword>비밀번호를 잊으셨나요?</ForgotPassword>
-          <SignUpLink>
-            계정이 없으신가요?
-            <a href="#" onClick={(e) => e.preventDefault()}>
-              회원가입
-            </a>
-          </SignUpLink>
         </Form>
       </LoginCard>
+
+      <AnimatePresence>
+        {showSignUp && (
+          <>
+            <ModalOverlay
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSignUp(false)}
+            />
+            <SignUpModal
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CloseButton onClick={() => setShowSignUp(false)}>
+                &times;
+              </CloseButton>
+              <Title>회원가입</Title>
+              <Form onSubmit={handleSignUp}>
+                <InputGroup>
+                  <Input
+                    type="text"
+                    placeholder=" "
+                    value={signUpData.name}
+                    onChange={(e) =>
+                      setSignUpData({ ...signUpData, name: e.target.value })
+                    }
+                    required
+                  />
+                  <Label>이름</Label>
+                </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="email"
+                    placeholder=" "
+                    value={signUpData.email}
+                    onChange={(e) =>
+                      setSignUpData({ ...signUpData, email: e.target.value })
+                    }
+                    required
+                  />
+                  <Label>이메일</Label>
+                </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="password"
+                    placeholder=" "
+                    value={signUpData.password}
+                    onChange={(e) =>
+                      setSignUpData({ ...signUpData, password: e.target.value })
+                    }
+                    required
+                  />
+                  <Label>비밀번호</Label>
+                </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="password"
+                    placeholder=" "
+                    value={signUpData.passwordConfirm}
+                    onChange={(e) =>
+                      setSignUpData({
+                        ...signUpData,
+                        passwordConfirm: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                  <Label>비밀번호 확인</Label>
+                </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="text"
+                    placeholder=" "
+                    value={signUpData.nickname}
+                    onChange={(e) =>
+                      setSignUpData({ ...signUpData, nickname: e.target.value })
+                    }
+                    required
+                  />
+                  <Label>닉네임</Label>
+                </InputGroup>
+                <Button
+                  type="submit"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  가입하기
+                </Button>
+                {error && <ErrorMessage>{error}</ErrorMessage>}
+              </Form>
+            </SignUpModal>
+          </>
+        )}
+      </AnimatePresence>
     </LoginContainer>
   );
 };
