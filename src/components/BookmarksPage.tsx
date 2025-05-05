@@ -266,11 +266,14 @@ const BookmarksPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       // 1. 먼저 북마크된 명소 목록을 가져옵니다
-      const bookmarkResponse = await fetch("http://:3001/api/spots/bookmark", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const bookmarkResponse = await fetch(
+        "http://backend.peopletophoto.site/api/spots/bookmark",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!bookmarkResponse.ok) {
         throw new Error("북마크 조회 실패");
@@ -281,11 +284,14 @@ const BookmarksPage: React.FC = () => {
 
       // 2. 각 북마크된 명소의 상세 정보를 가져옵니다
       const spotDetailsPromises = bookmarks.map((bookmark) =>
-        fetch(`http://localhost:3001/api/spots/${bookmark.spotId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }).then((res) => res.json())
+        fetch(
+          `http://backend.peopletophoto.site/api/spots/${bookmark.spotId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        ).then((res) => res.json())
       );
 
       const spotDetailsResponses = await Promise.all(spotDetailsPromises);
@@ -305,7 +311,7 @@ const BookmarksPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spotId}/bookmark`,
+        `http://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
         {
           method: "DELETE",
           headers: {
@@ -342,7 +348,7 @@ const BookmarksPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spot.spotId}`,
+        `http://backend.peopletophoto.site/api/spots/${spot.spotId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

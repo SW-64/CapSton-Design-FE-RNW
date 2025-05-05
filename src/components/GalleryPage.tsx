@@ -60,7 +60,7 @@ const GalleryPage: React.FC = () => {
     console.log("hello world");
     const testApi = async () => {
       try {
-        const response = await fetch("http://localhost:3001", {
+        const response = await fetch("http://backend.peopletophoto.site", {
           credentials: "include",
         });
         const data = await response.text();

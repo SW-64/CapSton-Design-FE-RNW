@@ -244,7 +244,7 @@ const ExpandableNav: React.FC = () => {
       if (token) {
         try {
           const response = await fetch(
-            "http://localhost:3001/api/users/getMyInfo",
+            "http://backend.peopletophoto.site/api/users/getMyInfo",
             {
               headers: {
                 Authorization: `Bearer ${token}`,

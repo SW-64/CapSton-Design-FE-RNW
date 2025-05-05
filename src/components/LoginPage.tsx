@@ -193,14 +193,17 @@ const LoginPage: React.FC = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/sign-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        "http://backend.peopletophoto.site/api/auth/sign-in",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const result = await response.json();
 
@@ -224,13 +227,16 @@ const LoginPage: React.FC = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/sign-up", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(signUpData),
-      });
+      const response = await fetch(
+        "http://backend.peopletophoto.site/api/auth/sign-up",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(signUpData),
+        }
+      );
 
       const result = await response.json();
 

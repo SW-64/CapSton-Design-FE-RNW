@@ -214,7 +214,7 @@ const MyPhotosPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spotId}/visibility`,
+        `http://backend.peopletophoto.site/api/spots/${spotId}/visibility`,
         {
           method: "POST",
           headers: {
@@ -252,7 +252,7 @@ const MyPhotosPage: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:3001/api/users/getMySpot",
+          `http://backend.peopletophoto.site/api/users/getMySpot`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -287,7 +287,7 @@ const MyPhotosPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spot.spotId}`,
+        `http://backend.peopletophoto.site/api/spots/${spot.spotId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

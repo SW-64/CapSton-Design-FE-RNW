@@ -530,11 +530,14 @@ const CommunityPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3001/api/categories", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          "http://backend.peopletophoto.site/api/categories",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (!response.ok) throw new Error("카테고리 조회 실패");
         const data = await response.json();
         console.log("카테고리 API 응답:", data);
@@ -550,7 +553,7 @@ const CommunityPage: React.FC = () => {
     const fetchSpots = async () => {
       try {
         const token = localStorage.getItem("token");
-        let url = "http://localhost:3001/api/spots/user-photo";
+        let url = "http://backend.peopletophoto.site/api/spots/user-photo";
         if (selectedCategories.length > 0) {
           const params = selectedCategories
             .map((id) => `category=${id}`)
@@ -573,7 +576,7 @@ const CommunityPage: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:3001/api/spots/bookmark",
+          "http://backend.peopletophoto.site/api/spots/bookmark",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -600,7 +603,7 @@ const CommunityPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spotId}/bookmark`,
+        `http://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
         {
           method: isBookmarked ? "DELETE" : "POST",
           headers: {
@@ -660,13 +663,16 @@ const CommunityPage: React.FC = () => {
       formData.append("image", registerData.image);
       registerCategoryList.forEach((id) => formData.append("categoryList", id));
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/spots", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        "http://backend.peopletophoto.site/api/spots",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
       if (!response.ok) throw new Error("등록 실패");
       setRegisterSuccess("명소가 성공적으로 등록되었습니다.");
       setRegisterData({ spotName: "", extraInfo: "", image: null });
@@ -690,7 +696,7 @@ const CommunityPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/api/spots/${spot.spotId}`,
+        `http://backend.peopletophoto.site/api/spots/${spot.spotId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
