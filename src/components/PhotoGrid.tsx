@@ -324,6 +324,7 @@ interface PhotoGridProps {
 
 const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
   const [apiPhotos, setApiPhotos] = useState<Photo[]>([]);
+  const [transformedPhotos, setTransformedPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const [showNotice, setShowNotice] = useState(true);
@@ -354,16 +355,23 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
         const spotsArray = Array.isArray(data) ? data : data.spots || [];
 
         // API 응답을 Photo 형식에 맞게 변환
-        const transformedPhotos = spotsArray.map((item: any, index: number) => {
-          return {
-            id: item.galContentId || index.toString(),
-            title: item.galTitle || "제목 없음",
-            url: item.galWebImageUrl || "",
-            description: item.galPhotographyLocation || "위치 정보 없음",
-          };
-        });
+        const transformedPhotosData = spotsArray.map(
+          (item: any, index: number) => {
+            return {
+              id: item.galContentId || index.toString(),
+              title: item.galTitle || "제목 없음",
+              url: item.galWebImageUrl || "",
+              description: item.galPhotographyLocation || "위치 정보 없음",
+              category: item.galCategory || "기타",
+              photographer: item.galPhotographer || "촬영자 정보 없음",
+              location: item.galPhotographyLocation || "위치 정보 없음",
+              source: "한국관광공사",
+            };
+          }
+        );
 
-        setApiPhotos(transformedPhotos);
+        setApiPhotos(transformedPhotosData);
+        setTransformedPhotos(transformedPhotosData);
       } catch (error) {
         console.error("API 호출 실패:", error);
       }
@@ -372,17 +380,73 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
     fetchPhotos();
   }, []);
 
+  const handlePhotoClick = (photo: Photo) => {
+    // transformedPhotos에서 해당 사진을 찾아 설정
+    const foundPhoto = transformedPhotos.find((p) => p.id === photo.id);
+    if (foundPhoto) {
+      setSelectedPhoto(foundPhoto);
+    } else {
+      setSelectedPhoto(photo);
+    }
+  };
+
   return (
-    <Grid>
-      {apiPhotos.map((photo, index) => (
-        <PhotoCardComponent
-          key={photo.id}
-          photo={photo}
-          index={index}
-          onPhotoClick={(photo) => setSelectedPhoto(photo)}
-        />
-      ))}
-    </Grid>
+    <>
+      <Grid>
+        {apiPhotos.map((photo, index) => (
+          <PhotoCardComponent
+            key={photo.id}
+            photo={photo}
+            index={index}
+            onPhotoClick={handlePhotoClick}
+          />
+        ))}
+      </Grid>
+
+      <AnimatePresence>
+        {selectedPhoto && (
+          <Modal
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedPhoto(null)}
+          >
+            <ModalContent
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              <ButtonGroup>
+                <IconButton onClick={() => setSelectedPhoto(null)}>
+                  ✕
+                </IconButton>
+              </ButtonGroup>
+              <div className="image-container">
+                <img src={selectedPhoto.url} alt={selectedPhoto.title} />
+              </div>
+              <ModalInfo
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h3>{selectedPhoto.title}</h3>
+                <p>
+                  <strong>위치:</strong> {selectedPhoto.location}
+                </p>
+                <p>
+                  <strong>촬영자:</strong> {selectedPhoto.photographer}
+                </p>
+                <p>
+                  <strong>출처:</strong> {selectedPhoto.source}
+                </p>
+              </ModalInfo>
+            </ModalContent>
+          </Modal>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

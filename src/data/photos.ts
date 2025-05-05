@@ -4,6 +4,9 @@ export interface Photo {
   title: string;
   description: string;
   category: string;
+  location?: string;
+  photographer?: string;
+  source?: string;
 }
 
 export const photos: Photo[] = [

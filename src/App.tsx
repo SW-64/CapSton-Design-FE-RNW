@@ -8,6 +8,7 @@ import CommunityPage from "./components/CommunityPage";
 import MyPhotosPage from "./components/MyPhotosPage";
 import BookmarksPage from "./components/BookmarksPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ExpandableNav from "./components/ExpandableNav";
 import { photos } from "./data/photos";
 
 const AppContainer = styled.div`
@@ -24,6 +25,7 @@ const AppContainer = styled.div`
 const Gallery = () => (
   <AppContainer>
     <PhotoGrid photos={photos} />
+    <ExpandableNav />
   </AppContainer>
 );
 

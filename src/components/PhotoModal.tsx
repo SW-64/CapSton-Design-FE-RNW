@@ -11,6 +11,8 @@ interface PhotoModalProps {
   nickname?: string;
   isBookmarked: boolean;
   onBookmark: (e: React.MouseEvent) => void;
+  extraInfo?: string;
+  categories?: string[];
 }
 
 const ModalOverlay = styled(motion.div)`
@@ -28,134 +30,78 @@ const ModalOverlay = styled(motion.div)`
 
 const ModalContent = styled(motion.div)`
   position: relative;
-  width: 90%;
-  max-width: 1200px;
-  max-height: 90vh;
+  background: transparent;
+  width: 95%;
+  max-width: 1600px;
+  max-height: 95vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 30px;
+  padding: 20px;
+  border-radius: 10px;
 `;
 
-const ModalHeader = styled.div`
-  position: absolute;
-  top: -40px;
-  right: 0;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-`;
-
-const HeaderButton = styled(motion.button)`
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  color: black;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.7rem;
+const ModalImage = styled.div<{ imageUrl: string }>`
+  flex: 1;
+  max-width: 70%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  backdrop-filter: blur(5px);
-
-  &:hover {
-    background: rgba(255, 255, 255, 1);
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-`;
-
-const PhotoImage = styled.div<{ imageUrl: string }>`
-  width: 100%;
-  padding-top: 75%;
   background-image: url(${(props) => props.imageUrl});
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  margin-bottom: 1rem;
+  min-height: 600px;
+  border-radius: 5px;
 `;
 
 const InfoContainer = styled.div`
-  width: 100%;
-  padding: 1rem;
-  background: rgba(30, 30, 30, 0.8);
-  border-radius: 8px;
+  flex: 1;
+  max-width: 30%;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 30px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: white;
+`;
+
+const SpotName = styled.h2`
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+`;
+
+const Notes = styled.p`
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
 `;
 
 const UserInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-`;
-
-const SpotName = styled.h2`
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: white;
-`;
-
-const Notes = styled.p`
-  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.8);
-  line-height: 1.4;
-`;
-
-const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
-  background: ${(props) =>
-    props.isBookmarked ? "#6c5ce7" : "rgba(255, 255, 255, 0.1)"};
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.3s ease;
-
-  &:hover {
-    background: ${(props) =>
-      props.isBookmarked ? "#5b4bc4" : "rgba(255, 255, 255, 0.2)"};
-  }
+  font-size: 1rem;
+  margin-bottom: 20px;
 `;
 
 const ModalActions = styled.div`
   display: flex;
-  justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: auto;
 `;
 
-const DownloadButton = styled(motion.button)`
-  background: rgba(255, 255, 255, 0.1);
+const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
+  background: ${(props) => (props.isBookmarked ? "#6c5ce7" : "#2d2d2d")};
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -163,8 +109,59 @@ const DownloadButton = styled(motion.button)`
   transition: background 0.3s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: ${(props) => (props.isBookmarked ? "#5b4bc4" : "#3d3d3d")};
   }
+`;
+
+const CloseButton = styled(motion.button)`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+  }
+`;
+
+const ExtraInfo = styled.p`
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+`;
+
+const CategoryBadgeList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+`;
+
+const CategoryBadge = styled.span`
+  background: #6c5ce7;
+  color: #fff;
+  border-radius: 12px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 `;
 
 const PhotoModal: React.FC<PhotoModalProps> = ({
@@ -176,24 +173,9 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
   nickname,
   isBookmarked,
   onBookmark,
+  extraInfo,
+  categories,
 }) => {
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `photo-${spotName}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("다운로드 중 오류가 발생했습니다:", error);
-    }
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -209,49 +191,14 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalHeader>
-              <HeaderButton
-                onClick={handleDownload}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                title="이미지 저장"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-              </HeaderButton>
-              <HeaderButton
-                onClick={onClose}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                title="닫기"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </HeaderButton>
-            </ModalHeader>
-            <PhotoImage imageUrl={imageUrl} />
+            <CloseButton
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              ✕
+            </CloseButton>
+            <ModalImage imageUrl={imageUrl} />
             <InfoContainer>
               {nickname && (
                 <UserInfo>
@@ -260,6 +207,14 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 </UserInfo>
               )}
               <SpotName>{spotName}</SpotName>
+              {extraInfo && <ExtraInfo>📍 {extraInfo}</ExtraInfo>}
+              {categories && categories.length > 0 && (
+                <CategoryBadgeList>
+                  {categories.map((cat, idx) => (
+                    <CategoryBadge key={idx}>{cat}</CategoryBadge>
+                  ))}
+                </CategoryBadgeList>
+              )}
               <Notes>{notes}</Notes>
               <ModalActions>
                 <BookmarkButton

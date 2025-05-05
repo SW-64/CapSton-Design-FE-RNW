@@ -208,6 +208,7 @@ const MyPhotosPage: React.FC = () => {
   const [userSpots, setUserSpots] = useState<UserSpot[]>([]);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const togglePublicStatus = async (spotId: number) => {
     try {
@@ -282,6 +283,34 @@ const MyPhotosPage: React.FC = () => {
     });
   };
 
+  const handlePhotoCardClick = async (spot: any) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/spots/${spot.spotId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("상세 명소 조회 실패");
+      const data = await response.json();
+      setSelectedSpot(data.data);
+      if (data.data.SpotCategory) {
+        const categoryNames = data.data.SpotCategory.map(
+          (sc: any) => sc.category.name
+        );
+        setSelectedCategories(categoryNames);
+      } else {
+        setSelectedCategories([]);
+      }
+    } catch (error) {
+      setSelectedSpot(spot);
+      setSelectedCategories([]);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -298,7 +327,7 @@ const MyPhotosPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                onClick={() => setSelectedSpot(spot)}
+                onClick={() => handlePhotoCardClick(spot)}
               >
                 <PhotoImage imageUrl={spot.imageUrl} />
                 <PhotoInfo>
@@ -382,6 +411,7 @@ const MyPhotosPage: React.FC = () => {
         nickname={userSpots[0]?.nickName}
         isBookmarked={false}
         onBookmark={() => {}}
+        categories={selectedCategories}
       />
     </Container>
   );

@@ -95,6 +95,11 @@ const PhotoImage = styled.div<{ imageUrl: string }>`
   background-size: cover;
   background-position: center;
   position: relative;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ${PhotoCard}:hover & {
+    transform: scale(1.08);
+  }
 `;
 
 const PhotoInfo = styled.div`
@@ -166,11 +171,17 @@ const ActionButton = styled(motion.button)`
   background: rgba(255, 255, 255, 0.9);
   color: #1e1e1e;
   border: none;
-  padding: 0.6rem 1.2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 120px;
+  min-height: 44px;
   cursor: pointer;
   transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background: white;
@@ -249,19 +260,17 @@ const BookmarksPage: React.FC = () => {
   const [bookmarkedSpots, setBookmarkedSpots] = useState<SpotDetail[]>([]);
   const [selectedSpot, setSelectedSpot] = useState<SpotDetail | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const fetchBookmarkedSpots = async () => {
     try {
       const token = localStorage.getItem("token");
       // 1. 먼저 북마크된 명소 목록을 가져옵니다
-      const bookmarkResponse = await fetch(
-        "http://localhost:3001/api/spots/bookmark",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const bookmarkResponse = await fetch("http://:3001/api/spots/bookmark", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!bookmarkResponse.ok) {
         throw new Error("북마크 조회 실패");
@@ -328,6 +337,35 @@ const BookmarksPage: React.FC = () => {
     });
   };
 
+  // 상세 명소 API 호출 및 카테고리 추출
+  const handlePhotoCardClick = async (spot: any) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/spots/${spot.spotId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("상세 명소 조회 실패");
+      const data = await response.json();
+      setSelectedSpot(data.data);
+      if (data.data.SpotCategory) {
+        const categoryNames = data.data.SpotCategory.map(
+          (sc: any) => sc.category.name
+        );
+        setSelectedCategories(categoryNames);
+      } else {
+        setSelectedCategories([]);
+      }
+    } catch (error) {
+      setSelectedSpot(spot);
+      setSelectedCategories([]);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -344,7 +382,7 @@ const BookmarksPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => setSelectedSpot(spot)}
+              onClick={() => handlePhotoCardClick(spot)}
             >
               <PhotoImage imageUrl={spot.imageUrl} />
               <PhotoInfo>
@@ -355,6 +393,16 @@ const BookmarksPage: React.FC = () => {
                 </PhotoMeta>
               </PhotoInfo>
               <Overlay className="overlay">
+                <ActionButton
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePhotoCardClick(spot);
+                  }}
+                >
+                  크게보기
+                </ActionButton>
                 <ActionButton
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -421,6 +469,7 @@ const BookmarksPage: React.FC = () => {
         nickname=""
         isBookmarked={true}
         onBookmark={() => selectedSpot && handleUnbookmark(selectedSpot.spotId)}
+        categories={selectedCategories}
       />
     </Container>
   );

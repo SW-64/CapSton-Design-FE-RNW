@@ -155,9 +155,6 @@ const ModalOverlay = styled(motion.div)`
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `;
 
 const CloseButton = styled.button`
@@ -180,6 +177,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
   const [showSignUp, setShowSignUp] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
@@ -239,6 +237,7 @@ const LoginPage: React.FC = () => {
       if (response.ok) {
         console.log("회원가입 성공:", result);
         setShowSignUp(false);
+        setSignUpSuccess(true);
         // 회원가입 성공 후 입력 필드 초기화
         setSignUpData({
           name: "",
@@ -270,6 +269,18 @@ const LoginPage: React.FC = () => {
         transition={{ delay: 0.2, duration: 0.5 }}
       >
         <Title>로그인</Title>
+        {signUpSuccess && (
+          <div
+            style={{
+              color: "#6c5ce7",
+              fontWeight: 600,
+              textAlign: "center",
+              marginBottom: "1rem",
+            }}
+          >
+            회원가입 성공했습니다!
+          </div>
+        )}
         <Form onSubmit={handleSubmit}>
           <InputGroup>
             <Input
@@ -319,9 +330,9 @@ const LoginPage: React.FC = () => {
               onClick={() => setShowSignUp(false)}
             />
             <SignUpModal
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
               <CloseButton onClick={() => setShowSignUp(false)}>
