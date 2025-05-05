@@ -340,7 +340,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://backend.peopletophoto.site/api/spots/external",
+          "https://backend.peopletophoto.site/api/spots/external",
           {
             credentials: "include",
             headers: {

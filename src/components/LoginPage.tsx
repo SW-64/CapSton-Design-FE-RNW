@@ -194,7 +194,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const response = await fetch(
-        "http://backend.peopletophoto.site/api/auth/sign-in",
+        "https://backend.peopletophoto.site/api/auth/sign-in",
         {
           method: "POST",
           headers: {
@@ -228,7 +228,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const response = await fetch(
-        "http://backend.peopletophoto.site/api/auth/sign-up",
+        "https://backend.peopletophoto.site/api/auth/sign-up",
         {
           method: "POST",
           headers: {

@@ -267,7 +267,7 @@ const BookmarksPage: React.FC = () => {
       const token = localStorage.getItem("token");
       // 1. 먼저 북마크된 명소 목록을 가져옵니다
       const bookmarkResponse = await fetch(
-        "http://backend.peopletophoto.site/api/spots/bookmark",
+        "https://backend.peopletophoto.site/api/spots/bookmark",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -285,7 +285,7 @@ const BookmarksPage: React.FC = () => {
       // 2. 각 북마크된 명소의 상세 정보를 가져옵니다
       const spotDetailsPromises = bookmarks.map((bookmark) =>
         fetch(
-          `http://backend.peopletophoto.site/api/spots/${bookmark.spotId}`,
+          `https://backend.peopletophoto.site/api/spots/${bookmark.spotId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -311,7 +311,7 @@ const BookmarksPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
+        `https://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
         {
           method: "DELETE",
           headers: {
@@ -348,7 +348,7 @@ const BookmarksPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://backend.peopletophoto.site/api/spots/${spot.spotId}`,
+        `https://backend.peopletophoto.site/api/spots/${spot.spotId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

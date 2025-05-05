@@ -531,7 +531,7 @@ const CommunityPage: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://backend.peopletophoto.site/api/categories",
+          "https://backend.peopletophoto.site/api/categories",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -553,7 +553,7 @@ const CommunityPage: React.FC = () => {
     const fetchSpots = async () => {
       try {
         const token = localStorage.getItem("token");
-        let url = "http://backend.peopletophoto.site/api/spots/user-photo";
+        let url = "https://backend.peopletophoto.site/api/spots/user-photo";
         if (selectedCategories.length > 0) {
           const params = selectedCategories
             .map((id) => `category=${id}`)
@@ -576,7 +576,7 @@ const CommunityPage: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://backend.peopletophoto.site/api/spots/bookmark",
+          "https://backend.peopletophoto.site/api/spots/bookmark",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -603,7 +603,7 @@ const CommunityPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
+        `https://backend.peopletophoto.site/api/spots/${spotId}/bookmark`,
         {
           method: isBookmarked ? "DELETE" : "POST",
           headers: {
@@ -664,7 +664,7 @@ const CommunityPage: React.FC = () => {
       registerCategoryList.forEach((id) => formData.append("categoryList", id));
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://backend.peopletophoto.site/api/spots",
+        "https://backend.peopletophoto.site/api/spots",
         {
           method: "POST",
           headers: {
@@ -696,7 +696,7 @@ const CommunityPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://backend.peopletophoto.site/api/spots/${spot.spotId}`,
+        `https://backend.peopletophoto.site/api/spots/${spot.spotId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
