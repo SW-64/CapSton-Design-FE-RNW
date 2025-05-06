@@ -96,7 +96,7 @@ const ModalActions = styled.div`
 `;
 
 const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
-  background: ${(props) => (props.isBookmarked ? "#6c5ce7" : "#2d2d2d")};
+  background: ${(props) => (props.isBookmarked ? "rgb(243, 186, 0)" : "#2d2d2d")};
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -109,7 +109,7 @@ const BookmarkButton = styled(motion.button)<{ isBookmarked: boolean }>`
   transition: background 0.3s ease;
 
   &:hover {
-    background: ${(props) => (props.isBookmarked ? "#5b4bc4" : "#3d3d3d")};
+    background: ${(props) => (props.isBookmarked ? "rgb(221, 173, 0)" : "#3d3d3d")};
   }
 `;
 
@@ -156,7 +156,7 @@ const CategoryBadgeList = styled.div`
 `;
 
 const CategoryBadge = styled.span`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: #fff;
   border-radius: 12px;
   padding: 0.3rem 0.9rem;

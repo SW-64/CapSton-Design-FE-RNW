@@ -125,7 +125,7 @@ const ProfileImage = styled.img`
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #6c5ce7;
+  border: 3px solidrgb(255, 196, 0);
 `;
 
 const ProfileInfo = styled.div`
@@ -140,7 +140,7 @@ const UserName = styled.h2`
 
 const UserNickname = styled.p`
   font-size: 1.2rem;
-  color: #6c5ce7;
+  color:rgb(243, 186, 0);
   margin-bottom: 0.5rem;
 `;
 
@@ -157,13 +157,13 @@ const InfoGrid = styled.div`
 `;
 
 const InfoItem = styled.div`
-  background: rgba(108, 92, 231, 0.1);
+  background: rgba(209, 205, 233, 0.1);
   padding: 1rem;
   border-radius: 10px;
 
   h3 {
     font-size: 0.9rem;
-    color: #6c5ce7;
+    color: rgb(243, 186, 0);
     margin-bottom: 0.5rem;
   }
 
