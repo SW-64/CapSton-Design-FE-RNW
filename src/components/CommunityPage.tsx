@@ -190,7 +190,7 @@ const NavigationButtons = styled.div`
 `;
 
 const NavigationButton = styled(motion.button)`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -222,7 +222,7 @@ const MenuButton = styled(motion.button)`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   font-size: 24px;
@@ -234,7 +234,7 @@ const MenuButton = styled(motion.button)`
   z-index: 1000;
 
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
@@ -249,7 +249,7 @@ const MenuContainer = styled(motion.div)`
 `;
 
 const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
-  background: ${(props) => (props.disabled ? "#3d3d3d" : "#6c5ce7")};
+  background: ${(props) => (props.disabled ? "#3d3d3d" : "rgb(243, 186, 0)")};
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -261,7 +261,7 @@ const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: ${(props) => (props.disabled ? "#3d3d3d" : "#5b4bc4")};
+    background: ${(props) => (props.disabled ? "#3d3d3d" : "rgb(221, 173, 0)")};
   }
 `;
 
@@ -315,12 +315,12 @@ const GuideButton = styled.button`
   z-index: 1100;
   transition: color 0.2s;
   &:hover {
-    color: #6c5ce7;
+    color: rgb(243, 186, 0);
   }
 `;
 
 const RegisterButton = styled.button`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -332,7 +332,7 @@ const RegisterButton = styled.button`
   transition: background 0.2s;
   font-family: inherit;
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
@@ -390,7 +390,7 @@ const RegisterInput = styled.input`
     opacity: 1;
   }
   &:focus {
-    border-color: #6c5ce7;
+    border-color: rgb(243, 186, 0);
   }
 `;
 
@@ -415,7 +415,7 @@ const RegisterTextarea = styled.textarea`
     opacity: 1;
   }
   &:focus {
-    border-color: #6c5ce7;
+    border-color: rgb(243, 186, 0);
   }
 `;
 
@@ -441,7 +441,7 @@ const RegisterSuccess = styled.div`
 `;
 
 const Button = styled(motion.button)`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   border-radius: 8px;
@@ -452,7 +452,7 @@ const Button = styled(motion.button)`
   transition: all 0.3s ease;
   margin-top: 1rem;
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
@@ -468,7 +468,7 @@ const CategoryGrid = styled.div`
 `;
 
 const CategoryButton = styled(motion.button)<{ active?: boolean }>`
-  background: ${({ active }) => (active ? "#6c5ce7" : "#2a2a2a")};
+  background: ${({ active }) => (active ? "rgb(243, 186, 0)" : "#2a2a2a")};
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -482,10 +482,10 @@ const CategoryButton = styled(motion.button)<{ active?: boolean }>`
   text-overflow: ellipsis;
   max-width: 90px;
   min-width: 0;
-  box-shadow: ${({ active }) => (active ? "0 0 0 2px #a29bfe" : "none")};
+  box-shadow: ${({ active }) => (active ? "0 0 0 2px rgb(254, 231, 155)" : "none")};
 
   &:hover {
-    background: #6c5ce7;
+    background: rgb(243, 186, 0);
   }
 `;
 
@@ -1022,7 +1022,7 @@ const CommunityPage: React.FC = () => {
                       onChange={() =>
                         handleRegisterCategoryToggle(category.categoryId)
                       }
-                      style={{ accentColor: "#6c5ce7" }}
+                      style={{ accentColor: "rgb(243, 186, 0)" }}
                     />
                     {category.name}
                   </label>

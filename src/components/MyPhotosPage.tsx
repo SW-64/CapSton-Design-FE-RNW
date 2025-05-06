@@ -143,7 +143,7 @@ const NavigationButtons = styled.div`
 `;
 
 const NavigationButton = styled(motion.button)`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -160,7 +160,7 @@ const MenuButton = styled(motion.button)`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   font-size: 24px;
@@ -172,7 +172,7 @@ const MenuButton = styled(motion.button)`
   z-index: 1000;
 
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
@@ -187,7 +187,7 @@ const MenuContainer = styled(motion.div)`
 `;
 
 const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
-  background: ${(props) => (props.disabled ? "#3d3d3d" : "#6c5ce7")};
+  background: ${(props) => (props.disabled ? "#3d3d3d" : "rgb(243, 186, 0)")};
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -199,7 +199,7 @@ const MenuItem = styled(motion.button)<{ disabled?: boolean }>`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: ${(props) => (props.disabled ? "#3d3d3d" : "#5b4bc4")};
+    background: ${(props) => (props.disabled ? "#3d3d3d" : "rgb(221, 173, 0)")};
   }
 `;
 

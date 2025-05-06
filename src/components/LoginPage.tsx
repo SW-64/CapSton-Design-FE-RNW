@@ -63,7 +63,7 @@ const Input = styled.input`
   outline: none;
 
   &:focus {
-    border-color: #6c5ce7;
+    border-color: rgb(243, 186, 0);
     box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
   }
 
@@ -73,12 +73,12 @@ const Input = styled.input`
     font-size: 0.8rem;
     background: #1e1e1e;
     padding: 0 0.4rem;
-    color: #6c5ce7;
+    color: rgb(243, 186, 0);
   }
 `;
 
 const Button = styled(motion.button)`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   border-radius: 8px;
@@ -90,7 +90,7 @@ const Button = styled(motion.button)`
   margin-top: 1rem;
 
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
@@ -103,7 +103,7 @@ const ForgotPassword = styled.a`
   transition: color 0.3s ease;
 
   &:hover {
-    color: #6c5ce7;
+    color: rgb(243, 186, 0);
   }
 `;
 
@@ -114,14 +114,14 @@ const SignUpLink = styled.div`
   margin-top: 1.5rem;
 
   a {
-    color: #6c5ce7;
+    color: rgb(243, 186, 0);
     text-decoration: none;
     font-weight: 600;
     margin-left: 0.5rem;
     transition: color 0.3s ease;
 
     &:hover {
-      color: #5b4bc4;
+      color: rgb(221, 173, 0);
     }
   }
 `;
@@ -278,7 +278,7 @@ const LoginPage: React.FC = () => {
         {signUpSuccess && (
           <div
             style={{
-              color: "#6c5ce7",
+              color: "rgb(243, 186, 0)",
               fontWeight: 600,
               textAlign: "center",
               marginBottom: "1rem",

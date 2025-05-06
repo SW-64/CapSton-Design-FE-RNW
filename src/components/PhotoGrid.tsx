@@ -223,7 +223,7 @@ const NoticeContent = styled.div`
 `;
 
 const NoticeButton = styled.button`
-  background: #6c5ce7;
+  background: rgb(243, 186, 0);
   color: white;
   border: none;
   padding: 0.8rem 2rem;
@@ -233,7 +233,7 @@ const NoticeButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background: #5b4bc4;
+    background: rgb(221, 173, 0);
   }
 `;
 
